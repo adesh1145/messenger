@@ -184,7 +184,7 @@ class ChatListScreen extends GetView<ChatListController> {
           ? CircularProgressIndicator()
           : TextButton(
               onPressed: () {
-                controller.createChat(user.uid);
+                controller.createChat(user.uid, user.name);
               },
               child: TextWidget(text: "Chat", textcolor: AppColors.primary),
             ),

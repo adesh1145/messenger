@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:messenger/core/config/app_routes.dart';
 import 'package:messenger/core/widgets/custom_snack_bar.dart';
 import 'package:messenger/features/auth/domain/usecase/register_usecase.dart';
+import 'package:messenger/features/profile/presentation/profile_controller.dart';
 
 class RegisterController extends GetxController {
   final RegisterUsecase registerUseCase;
@@ -30,11 +31,8 @@ class RegisterController extends GetxController {
 
     result.fold((l) => customSnackBar(l.message, type: SnackBarType.error), (
       r,
-    ) {
-      Get.offAllNamed(
-        AppRoutes.updateProfileScreen,
-        arguments: {"isFromRegister"},
-      );
+    ) async {
+      await Get.find<ProfileController>().getProfile();
       customSnackBar(
         "Account created successfully",
         type: SnackBarType.success,

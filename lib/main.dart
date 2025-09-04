@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) => GetMaterialApp(
-        title: 'AK Messenger',
+        title: 'Messenger',
         theme: AppTheme.lightTheme,
         debugShowCheckedModeBanner: false,
         initialRoute: AppRoutes.splashScreen,

@@ -16,6 +16,7 @@ class ChatScreen extends StatelessWidget {
   final ChatListController chatListController = Get.find<ChatListController>();
   final String chatId = Get.parameters['chatId']!;
   final String oppenantId = Get.arguments['oppenantId']!;
+  final String? name = Get.arguments['name'];
   ChatScreen({super.key});
 
   final messageController = TextEditingController();
@@ -55,7 +56,10 @@ class ChatScreen extends StatelessWidget {
               onTap: () =>
                   Get.toNamed(AppRoutes.profileScreen, arguments: oppenantId),
               child: TextWidget(
-                text: chatListController.chatsUsers[oppenantId]?.name ?? "",
+                text:
+                    name ??
+                    chatListController.chatsUsers[oppenantId]?.name ??
+                    "",
                 textcolor: Colors.white,
                 fontweight: FontWeight.w500,
                 fontsize: 20.sp,

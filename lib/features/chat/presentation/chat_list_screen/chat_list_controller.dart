@@ -46,24 +46,35 @@ class ChatListController extends GetxController {
   StreamSubscription<List<CallModel>>? callSubscription;
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
-    callSubscription = callRepository.listenAllCallStream().listen((calls) {
+    await Permission.notification.request();
+
+    callSubscription = callRepository.listenAllCallStream().listen((
+      calls,
+    ) async {
       for (var call in calls) {
-        bool isExist = false;
+        bool isuserExistonCall = false;
+
         for (var participant in call.participants) {
           if (participant.uid == Get.find<ProfileController>().user.value.uid) {
-            isExist = true;
+            isuserExistonCall = true;
           }
         }
-        if (!isExist) {
+        if (isuserExistonCall == false &&
+            call.callStatus == CallState.calling) {
+          log('Updating call status to ringing for ${call.roomId}');
           callRepository.updateCallStatus(call.roomId, CallState.ringing);
         }
-        if (call.callStatus == CallState.ringing &&
-            DateTime.now().isBefore(
-              call.createdAt.add(const Duration(seconds: 30)),
-            )) {
-          showIncomingCall(call.participants[0].name, call.roomId);
+        // log(DateTime.now().difference(call.createdAt).inSeconds.toString());
+        // log("${call.callStatus.value} ${call.callStatus == CallState.ringing}");
+        // log(isuserExistonCall.toString());
+        if (isuserExistonCall == false &&
+            call.callStatus == CallState.ringing &&
+            DateTime.now().difference(call.createdAt).inSeconds <= 60) {
+          log('Showing incoming call for ${call.roomId}');
+
+          await showIncomingCall(call.participants[0].name, call.roomId);
         }
       }
     });
@@ -76,7 +87,6 @@ class ChatListController extends GetxController {
     callSubscription?.cancel();
   }
 
-  Future<void> getChatList() async {}
   Future<void> searchChat(String query) async {
     searchLoading.value = true;
     final result = await searchUserUseCase(query);
@@ -88,7 +98,7 @@ class ChatListController extends GetxController {
     searchLoading.value = false;
   }
 
-  Future<void> createChat(String userId) async {
+  Future<void> createChat(String userId, String name) async {
     createChatLoading.value = true;
     final result = await createNewChat(userId);
     result.fold((l) => customSnackBar(l.message, type: SnackBarType.error), (
@@ -98,7 +108,7 @@ class ChatListController extends GetxController {
       searchTextController.clear();
       Get.toNamed(
         AppRoutes.chatScreen,
-        parameters: {"chatId": r.id},
+        parameters: {"chatId": r.id, "name": name},
         arguments: {
           "oppenantId": r.participants.firstWhere(
             (user) => user != Get.find<ProfileController>().user.value.uid,
@@ -144,16 +154,17 @@ class ChatListController extends GetxController {
         },
       );
     } else {
-      customSnackBar(
-        "Audio Video Call Permission not granted",
-        type: SnackBarType.error,
-      );
+      // customSnackBar(
+      //   "Audio Video Call Permission not granted",
+      //   type: SnackBarType.error,
+      // );
     }
   }
 
   Future<void> showIncomingCall(String callerName, String chatId) async {
     final params = <String, dynamic>{
-      'id': const Uuid().v4(),
+      'id': chatId,
+      //  const Uuid().v4(),
       'nameCaller': callerName,
       'appName': 'Messenger',
       'avatar': 'https://i.pravatar.cc/100', // optional image url
@@ -201,13 +212,17 @@ class ChatListController extends GetxController {
           break;
 
         case Event.actionCallDecline:
-          customSnackBar("Call Declined", type: SnackBarType.error);
+          callRepository.updateCallStatus(
+            callParams.extra!["chatId"],
+            CallState.rejected,
+          );
+          //customSnackBar("Call Declined", type: SnackBarType.error);
           break;
 
         case Event.actionCallEnded:
           callRepository.updateCallStatus(
             callParams.extra!["chatId"],
-            CallState.rejected,
+            CallState.ended,
           );
           break;
 

@@ -90,14 +90,17 @@ class ProfileController extends GetxController {
       value.fold(
         (l) {
           customSnackBar(l.message, type: SnackBarType.error);
-          Get.offAllNamed(
-            AppRoutes.updateProfileScreen,
-            arguments: {"isFromRegister": true},
-          );
         },
         (r) {
           user.value = r;
-          Get.offAndToNamed(AppRoutes.chatListScreen);
+          if (r.name.isEmpty || r.description.isEmpty) {
+            Get.offAllNamed(
+              AppRoutes.updateProfileScreen,
+              arguments: {"isFromRegister": true},
+            );
+          } else {
+            Get.offAndToNamed(AppRoutes.chatListScreen);
+          }
         },
       );
     });

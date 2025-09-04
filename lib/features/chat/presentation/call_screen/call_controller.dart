@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as WebRTC;
 import 'package:get/get.dart';
 import 'package:messenger/features/chat/domain/repository/call_repository.dart';
@@ -109,7 +110,6 @@ class CallController extends GetxController {
         await renderer.dispose();
       }
       remoteRenderers.clear();
-
       _processedOffers.clear();
       _processedAnswers.clear();
       _pendingOffers.clear();
@@ -190,8 +190,27 @@ class CallController extends GetxController {
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
         {'urls': 'stun:stun1.l.google.com:19302'},
+        {'urls': 'stun:stun2.l.google.com:19302'},
+        {'urls': 'stun:stun3.l.google.com:19302'},
+        {'urls': 'stun:stun4.l.google.com:19302'},
+        // {
+        //   "urls": "relay1.expressturn.com:3480",
+        //   "username": "000000002072339407",
+        //   "credential": "oDub69hMABiQG0L3oY6xarxfPZk=",
+        // },
+        // {
+        //   "urls": "turn:relay1.expressturn.com:3478",
+        //   "username": "000000002072339407",
+        //   "credential": "oDub69hMABiQG0L3oY6xarxfPZk=",
+        // },
+        // {
+        //   "urls": "turns:relay1.expressturn.com:5349",
+        //   "username": "000000002072339407",
+        //   "credential": "oDub69hMABiQG0L3oY6xarxfPZk=",
+        // },
       ],
       'sdpSemantics': 'unified-plan',
+      'iceTransportPolicy': 'all',
     };
 
     final peerConnection = await WebRTC.createPeerConnection(configuration);
@@ -442,7 +461,8 @@ class CallController extends GetxController {
     // Listen to participants
     _participantsSub = callRepository.listenCall(roomId!).listen((calls) async {
       if (calls.callStatus == CallState.ended ||
-          calls.callStatus == CallState.failed) {
+          calls.callStatus == CallState.failed ||
+          calls.callStatus == CallState.rejected) {
         leaveCall();
       }
       callState.value = calls.callStatus;
@@ -595,7 +615,15 @@ class CallController extends GetxController {
       remoteRenderers.clear();
 
       if (roomId != null && myUid != null) {
+        log('Updating call status to ended for $roomId');
         await callRepository.updateCallStatus(roomId!, CallState.ended);
+        try {
+          await FlutterCallkitIncoming.endCall(roomId!);
+          log('Call ended successfully');
+        } catch (e) {
+          log('Error ending call: $e');
+        }
+        log('Call status updated to ended for $roomId');
       }
 
       await localRenderer.dispose();

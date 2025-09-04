@@ -75,7 +75,7 @@ class ChatController extends GetxController {
         arguments: {
           'uid': profileController.user.value.uid,
           'name': profileController.user.value.name,
-          'roomId': "video_call_$chatId",
+          'roomId': chatId,
           'isCreator': true,
         },
       );

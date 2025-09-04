@@ -22,7 +22,12 @@ class AuthRemoteDataSource {
       email: email,
       password: password,
     );
+
     FirebaseConstant.currentUser = res.user;
+    await FirebaseConstant.firestore
+        .collection(FirebaseConstant.usersCollection)
+        .doc(res.user?.uid ?? "")
+        .set({"uid": res.user?.uid ?? "", "email": email});
     return res.user?.uid ?? "";
   }
 

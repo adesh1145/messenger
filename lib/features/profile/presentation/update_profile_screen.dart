@@ -33,6 +33,7 @@ class _UpdateProfilePageUi extends State<UpdateProfileScreen> {
   @override
   void initState() {
     final controller = Get.find<ProfileController>();
+
     nameController.text = controller.user.value.name;
     descriptionController.text = controller.user.value.description;
     super.initState();

@@ -30,7 +30,7 @@ class TopPartOfScreen extends StatelessWidget {
               color: Colors.white,
             ),
             const TextWidget(
-              text: " AK Messenger",
+              text: " Messenger",
               fontsize: 30,
               textcolor: Colors.white,
               fontweight: FontWeight.bold,
